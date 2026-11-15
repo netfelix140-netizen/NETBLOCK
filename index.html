@@ -1,0 +1,1004 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+
+<link
+ rel="stylesheet"
+ href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+/>
+  
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NetBlock</title>
+
+<style>
+  
+* {
+    box-sizing: border-box;
+}
+
+body {
+    background: #020817;
+    font-family: Arial, sans-serif;
+    text-align: center;
+    margin: 0;
+    color: white;
+}
+
+#chapeu {
+    font-size: 120px;
+    margin-top: 50px;
+}
+
+h1 {
+    font-size: 32px;
+}
+
+#painelControle {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: #020817;
+    color: white;
+    padding: 16px;
+    overflow-y: auto;
+    z-index: 999;
+}
+
+.modulo {
+    background: #081D3B;
+    border: 1px solid #168BFF;
+    box-shadow: 0 0 10px #0759A8;
+    border-radius: 16px;
+    padding: 16px;
+    margin: 0;
+    color: #50D5FF;
+    font-size: 16px;
+    min-width: 0;
+}
+
+.cabecalhoNetblock {
+    padding: 12px;
+    margin-bottom: 18px;
+}
+
+.cabecalhoNetblock h1 {
+    color: #39CFFF;
+    margin: 5px;
+    font-size: 30px;
+}
+
+.cabecalhoNetblock p {
+    color: #168BFF;
+    margin: 5px;
+    font-size: 13px;
+    letter-spacing: 2px;
+}
+
+.gradeTopo {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+    margin-bottom: 18px;
+}
+
+.cardInfo {
+    min-height: 130px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.cardInfo h2 {
+    font-size: 14px;
+    margin: 5px 0 12px;
+}
+
+#horaAtual {
+    font-size: 27px !important;
+}
+
+#dataAtual {
+    font-size: 11px !important;
+}
+
+#climaAtual {
+    font-size: 14px !important;
+}
+
+#diaAtual {
+    font-size: 12px !important;
+}
+
+.nucleoNetblock {
+    background: radial-gradient(
+        circle,
+        #123C70,
+        #07172D 65%,
+        #020817
+    );
+    border: 1px solid #168BFF;
+    border-radius: 20px;
+    padding: 25px 12px;
+    margin: 18px 0;
+    box-shadow: 0 0 20px #0759A8;
+}
+
+.nucleoNetblock h2 {
+    color: #50D5FF;
+    letter-spacing: 2px;
+}
+
+.esferaNetblock {
+    width: 170px;
+    height: 170px;
+    border-radius: 50%;
+    margin: 25px auto;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: radial-gradient(
+        circle at 35% 30%,
+        #80E9FF,
+        #168BFF 25%,
+        #07336C 60%,
+        #020817
+    );
+    box-shadow:
+        0 0 25px #168BFF,
+        inset -15px -15px 30px #020817;
+}
+
+.orbita {
+    position: absolute;
+    width: 230px;
+    height: 75px;
+    border: 2px solid #50D5FF;
+    border-radius: 50%;
+    transform: rotate(-25deg);
+    box-shadow: 0 0 12px #168BFF;
+}
+
+.orbita.segunda {
+    width: 245px;
+    height: 95px;
+    transform: rotate(35deg);
+    border-color: #168BFF;
+}
+
+.areaMapa,
+.areaNoticias,
+.areaGraficos,
+.areaTarefas {
+    margin: 18px 0;
+}
+
+.gradeAcesso {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    margin: 18px 0;
+}
+
+.botaoAcesso {
+    width: 100%;
+    min-height: 90px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.gradeInferior {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 14px;
+}
+
+@media (min-width: 700px) {
+    #painelControle {
+        padding: 28px;
+    }
+
+    .gradeInferior {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 380px) {
+    .gradeTopo {
+        gap: 6px;
+    }
+
+    .cardInfo {
+        padding: 8px;
+    }
+
+    #horaAtual {
+        font-size: 21px !important;
+    }
+}
+
+.botaoAcesso {
+    color: #50D5FF;
+    font-weight: bold;
+    border: 1px solid #168BFF;
+    transition: 0.2s;
+}
+
+.botaoAcesso:active {
+    background: #168BFF;
+    transform: scale(0.96);
+}
+
+#mapaBrasil {
+    width: 100%;
+    height: 420px;
+    border-radius: 12px;
+    margin-top: 12px;
+    overflow: hidden;
+    background: #06142A;
+    z-index: 1;
+}
+
+#minhaForYou {
+    min-height: 130px;
+    padding: 15px;
+    background: #06142A;
+    border-radius: 12px;
+}
+
+.topoForYou {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 15px;
+}
+
+.topoForYou h3 {
+    color: #00E5FF;
+    margin: 0;
+}
+
+.topoForYou button {
+    background: #00B8D4;
+    color: #00121F;
+    border: none;
+    padding: 9px 14px;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+#statusForYou {
+    color: #9BBACB;
+    font-size: 13px;
+}
+
+#listaForYou {
+    display: grid;
+    gap: 12px;
+}
+
+.cartaoNoticia {
+    background: #102844;
+    border: 1px solid #087F9B;
+    border-radius: 12px;
+    padding: 13px;
+}
+
+.cartaoNoticia h4 {
+    color: #FFFFFF;
+    margin: 0 0 8px;
+}
+
+.cartaoNoticia p {
+    color: #B8CCDA;
+    font-size: 14px;
+}
+
+.cartaoNoticia a {
+    color: #00E5FF;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+
+  
+.areaGraficos #graficoMcDonalds,
+.areaGraficos #graficoCocaCola,
+.areaGraficos #graficoFaltas {
+    background: #06142A;
+    border-radius: 10px;
+    padding: 20px;
+    margin-top: 12px;
+}
+
+#listaTarefas {
+    display: grid;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+#listaTarefas input {
+    width: 100%;
+    padding: 13px;
+    border-radius: 8px;
+    border: 1px solid #168BFF;
+    background: #06142A;
+    color: white;
+    font-size: 15px;
+      }
+
+
+
+#graficoClima canvas {
+    max-height: 145px;
+}
+
+#graficoClima {
+    width: 240px;
+    height: 180px;
+    margin: auto;
+}
+
+#layoutClima {
+    display: grid;
+    grid-template-columns: 105px 1fr;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    height: 100%;
+}
+
+#pizzaClimatica {
+    width: 105px !important;
+    height: 105px !important;
+}
+
+#legendaClima {
+    font-size: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+    color: white;
+}
+
+
+  
+</style>
+
+<script
+ src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js">
+</script>
+
+
+<script 
+  src="https://cdn.jsdelivr.net/npm/chart.js" defer>
+  </script>
+
+  
+</head>
+
+<body>
+
+<div id="chapeu">🎩</div>
+
+ <h1 style="color: white; margin-left: 0px;">NetBlock</h1>
+
+<h3 style="color: white; margin-left: 0px;">Assistente oficial da Netfelix</h3>
+
+<button onclick="abrirPainel()" style="
+    padding: 14px 22px;
+    background: #071B3A;
+    color: #39CFFF;
+    border: 1px solid #168BFF;
+    border-radius: 12px;
+    font-size: 16px;
+    box-shadow: 0 0 12px #087DFF;
+">
+    🌐 Abrir Painel De Controle
+</button>
+  
+<div id="conversa" style="
+background: #202020;
+color: white;
+margin: 20px;
+padding: 15px;
+min-height: 200px;
+border-radius: 15px;
+text-align: left;
+">
+🎩 Olá! Sou a NetBlock Como Posso te Ajudar?, guri.
+</div>
+
+<input id="mensagem" placeholder="Digite sua mensagem..." style="
+padding: 12px;
+width: 60%;
+border-radius: 10px;
+">
+
+<button onclick="enviar()" style="
+padding: 12px;
+background: white;
+color: black;
+border-radius: 10px;
+">
+Enviar
+</button>
+
+
+<button onclick="ouvir()" style="
+padding: 12px;
+background:orange;
+color: black;
+border: none;
+border-radius: 10px;
+">
+📢 Falar
+</button>
+
+
+<div id="telaSenha" style="
+    display:none;
+    position:fixed;
+    inset:0;
+    background:#020817;
+    z-index:99999;
+    justify-content:center;
+    align-items:center;
+    padding:20px;
+">
+    <div style="
+        background:#102844;
+        border:2px solid #00E5FF;
+        border-radius:18px;
+        padding:25px;
+        width:100%;
+        max-width:350px;
+        text-align:center;
+    ">
+        <h2 style="color:#00E5FF;">🔐 DICA: CENTRO GLOBAL</h2>
+
+        <p style="color:white;">
+            Digite a senha para acessar o painel.
+        </p>
+
+        <input
+            id="senhaPainel"
+            type="password"
+            placeholder="Digite a senha"
+            style="
+                width:100%;
+                padding:12px;
+                box-sizing:border-box;
+                border-radius:8px;
+                border:1px solid #00E5FF;
+                margin:12px 0;
+            "
+        >
+
+        <button onclick="verificarSenha()">
+            ENTRAR
+        </button>
+
+        <p id="erroSenha" style="color:#FF5555;"></p>
+    </div>
+</div>
+
+  
+<div id="painelControle">
+
+    <div class="cabecalhoNetblock">
+        <h1>🎩 NETBLOCK</h1>
+        <p>CENTRAL DE COMANDO • NETFELIX</p>
+    </div>
+
+    <div class="gradeTopo">
+
+        <div class="modulo cardInfo">
+            <h2>🕒 RELÓGIO</h2>
+            <div id="horaAtual">--:--:--</div>
+            <div id="dataAtual">Carregando...</div>
+        </div>
+
+        <div class="modulo cardInfo">
+            <h2>🌦️ CLIMA</h2>
+            <div id="climaAtual">Carregando...</div>
+            <div id="diaAtual">Carregando...</div>
+        </div>
+
+        <div class="modulo cardInfo">
+            <h2>❄️ PIZZA CLIMATICA</h2>
+            <div id="graficoClima">Dados climáticos</div>
+        </div>
+
+    </div>
+
+    <div class="nucleoNetblock">
+        <h2>NÚCLEO CENTRAL</h2>
+
+        <div class="esferaNetblock">
+            <div class="orbita"></div>
+            <div class="orbita segunda"></div>
+            <span style="font-size:60px;">🌐</span>
+        </div>
+
+        <p>SISTEMA NETBLOCK ONLINE</p>
+    </div>
+
+    <div class="areaMapa">
+        <div class="modulo">
+            <h2>🇧🇷 MAPA CLIMATICO</h2>
+            <div id="mapaBrasil"></div>
+        </div>
+    </div>
+
+    <div class="gradeAcesso">
+
+        <button class="modulo botaoAcesso"
+        onclick="abrirCalendario()">📅<br>CALENDÁRIO</button>
+
+        <button class="modulo botaoAcesso"
+        onclick="abrirNotificacoes()">🔔<br>NOTIFICAÇÕES</button>
+
+        <button class="modulo botaoAcesso"
+        onclick="abrirConfiguracoes()">⚙️<br>CONFIGURAÇÕES</button>
+
+        <button class="modulo botaoAcesso"
+        onclick="abrirUniversoNetfelix()">🌐<br>UNIVERSO NETFELIX</button>
+
+<div id="universoNetfelix" style="display:none; text-align:center; padding:20px;">
+    <h2>SITE NETFELIX</h2>
+
+    <a href="https://share.google/TI6zst9zAHqkK7mBl"
+       target="_blank"
+       style="color:#39CFFF; font-size:18px;">
+        🌐 ACESSAR SITE NETFELIX
+    </a>
+
+    <br><br>
+
+    <button onclick="fecharUniversoNetfelix()">
+        ❌ FECHAR
+    </button>
+</div>
+
+    </div>
+
+    <div class="areaNoticias">
+        <div class="modulo">
+            <h2>🪎 MINHA FOR YOU</h2>
+            
+<div id="minhaForYou">
+
+    <div class="topoForYou">
+        <h3>🗞️ NOVIDADES DO DIA</h3>
+        <button onclick="atualizarForYou()">
+            Atualizar feed
+        </button>
+    </div>
+
+    <p id="statusForYou">
+        Aguardando conexão com as fontes de notícias...
+    </p>
+
+    <div id="listaForYou"></div>
+
+</div>
+
+        </div>
+    </div>
+
+    <div class="areaGraficos">
+        <div class="modulo">
+            <h2>📊 CENTRAL DE ESTATÍSTICAS</h2>
+            <div>
+    <h3>🍔 ESTATÍSTICAS McDONALD'S</h3>
+    <canvas id="graficoMcDonalds"></canvas>
+</div>
+
+<div>
+    <h3>🥤 ESTATÍSTICAS COCA-COLA</h3>
+    <canvas id="graficoCocaCola"></canvas>
+</div>
+        </div>
+    </div>
+
+
+<div class="modulo">
+    <h3>🎓 PREVISÃO DE FALTAS</h3>
+    <p id="probabilidadeFalta">
+        Aguardando previsão...
+    </p>
+    <canvas id="graficoFaltas"></canvas>
+</div>
+
+  
+    <div class="areaTarefas">
+        <div class="modulo">
+            <h2>📝 MINHAS 10 TAREFAS</h2>
+
+            <div id="listaTarefas">
+                <input placeholder="1. Digite uma tarefa">
+                <input placeholder="2. Digite uma tarefa">
+                <input placeholder="3. Digite uma tarefa">
+                <input placeholder="4. Digite uma tarefa">
+                <input placeholder="5. Digite uma tarefa">
+                <input placeholder="6. Digite uma tarefa">
+                <input placeholder="7. Digite uma tarefa">
+                <input placeholder="8. Digite uma tarefa">
+                <input placeholder="9. Digite uma tarefa">
+                <input placeholder="10. Digite uma tarefa">
+            </div>
+        </div>
+    </div>
+
+    <button onclick="fecharPainel()">❌ FECHAR PAINEL</button>
+
+</div>
+
+
+<div id="telaConfiguracoes" style="
+    display:none;
+    position:fixed;
+    inset:0;
+    background:#020817;
+    color:white;
+    padding:20px;
+    overflow-y:auto;
+    z-index:1001;
+">
+
+    <h1 style="color:#39CFFF;">
+        ⚙️ CONFIGURAÇÕES
+    </h1>
+
+    <div class="modulo">
+        <h2>🎨 Cores do Painel</h2>
+        <button onclick="mudarCor('azul')" class="modulo">
+            🔵 Azul neon / Azul marinho
+        </button>
+        <button onclick="mudarCor('amarelo')" class="modulo">
+            🟡 Amarelo / Laranja
+        </button>
+        <button onclick="mudarCor('tech')" class="modulo">
+            🟢 Cores tecnológicas
+        </button>
+        <button onclick="mudarCor('pb')" class="modulo">
+            ⚫ Preto / Branco
+        </button>
+    </div>
+
+    <div class="modulo">
+        <h2>💡 Brilho do Painel</h2>
+        <input
+            type="range"
+            min="0"
+            max="30"
+            value="10"
+            oninput="mudarBrilho(this.value)"
+            style="width:100%;"
+        >
+    </div>
+
+    <div class="modulo">
+        <h2>🔠 Tamanho dos textos</h2>
+        <button onclick="mudarTexto(16)">Pequeno</button>
+        <button onclick="mudarTexto(18)">Médio</button>
+        <button onclick="mudarTexto(22)">Grande</button>
+    </div>
+
+    <button onclick="restaurarPadrao()" class="modulo">
+        🔄 Restaurar padrão
+    </button>
+
+    <button onclick="fecharConfiguracoes()" style="
+        padding:14px;
+        background:#087DFF;
+        color:white;
+        border:0;
+        border-radius:10px;
+        margin-top:15px;
+    ">
+        ← Voltar ao painel
+    </button>
+
+</div>
+
+  
+    
+<div id="telaCalendario" style="
+    display:none;
+    position:fixed;
+    inset:0;
+    background:#020817;
+    color:white;
+    padding:20px;
+    overflow-y:auto;
+    z-index:1002;
+">
+
+    <h1 style="color:#39CFFF;">
+        📅 CALENDÁRIO NETBLOCK
+    </h1>
+
+    <div style="
+        display:flex;
+        gap:10px;
+        margin-bottom:15px;
+    ">
+        <button class="modulo"
+        onclick="mostrarAba('calendario')">
+            📅 Calendário mensal
+        </button>
+
+        <button class="modulo"
+        onclick="mostrarAba('agenda')">
+            📝 Agenda semanal
+        </button>
+    </div>
+
+    <div id="abaCalendario" class="modulo">
+        <h2>📅 Calendário mensal</h2>
+        <div id="calendarioMensal">
+            Carregando calendário...
+        </div>
+    </div>
+
+    <div id="abaAgenda" class="modulo" style="display:none;">
+        <h2>📝 Agenda semanal</h2>
+        <div id="conteudoAgenda"></div>
+    </div>
+
+    <button onclick="fecharCalendario()" style="
+        padding:14px;
+        background:#087DFF;
+        color:white;
+        border:0;
+        border-radius:10px;
+        margin-top:15px;
+    ">
+        ← Voltar ao painel
+    </button>
+
+</div>
+
+
+<div id="telaNotificacoes" style="
+    display:none;
+    position:fixed;
+    inset:0;
+    background:#020817;
+    color:white;
+    padding:20px;
+    overflow-y:auto;
+    z-index:1003;
+">
+
+    <h1 style="color:#39CFFF;">
+        🔔 NOTIFICAÇÕES
+    </h1>
+
+    <div class="modulo">
+        <h2>📢 Avisos</h2>
+
+        <input id="novoAviso"
+            placeholder="Escreva seu aviso..."
+            style="width:90%; padding:12px; border-radius:8px;">
+
+        <button onclick="criarAviso()" class="modulo">
+            ➕ Criar aviso
+        </button>
+
+        <div id="listaAvisos"></div>
+    </div>
+
+    <div class="modulo">
+        <h2>⏰ Lembretes</h2>
+
+        <input id="textoLembrete"
+            placeholder="Nome do lembrete..."
+            style="width:90%; padding:12px;">
+
+        <input id="dataLembrete"
+            type="datetime-local"
+            style="width:90%; padding:12px; margin-top:10px;">
+
+        <button onclick="criarLembrete()" class="modulo">
+            ➕ Programar lembrete
+        </button>
+
+        <div id="listaLembretes"></div>
+    </div>
+
+    <div class="modulo">
+        <h2>📅 Agenda de hoje</h2>
+        <div id="agendaNotificacoes"></div>
+    </div>
+
+    <div class="modulo">
+        <h2>📌 Avisos fixados</h2>
+        <div id="avisosFixados"></div>
+    </div>
+
+    <div class="modulo">
+        <h2>🗂️ Histórico</h2>
+        <div id="historicoAvisos"></div>
+    </div>
+
+    <button onclick="fecharNotificacoes()" style="
+        padding:14px;
+        background:#087DFF;
+        color:white;
+        border:0;
+        border-radius:10px;
+        margin-top:15px;
+    ">
+        ← Voltar ao painel
+    </button>
+
+</div>
+
+  
+<script>
+
+
+
+const conhecimento = {
+
+    empresa: {
+        nome: "Netfelix",
+
+        origem: "A Netfelix começou como uma empresa de memes e Meme Reset.",
+
+        nomeOrigem: "O nome Netfelix foi escolhido para ser engraçado.",
+
+        homenagem: "A empresa foi criada em homenagem ao professor Félix.",
+
+        crescimento: "A Netfelix continuou crescendo e se tornou uma empresa de tudo."
+    },
+
+    memeReset: {
+        definicao: "Meme Reset é uma proposta de renovar os memes, deixando para trás tendências atuais e trazendo de volta memes antigos.",
+
+        memesNovos: ["67", "42", "Farmar aura"],
+
+        memesAntigos: ["Nyan Cat"]
+    },
+
+    departamentos: {
+        modas: {
+            nome: "Netfelix Modas",
+            historia: "Foi a segunda divisão criada na Netfelix."
+        }
+    },
+
+    fundador: {
+        nome: "King of Astro",
+
+        significado: "Rei dos Astros.",
+
+        explicacao: "O nome se refere aos astros da música, como Michael Jackson, e não aos astros da astronomia."
+    },
+
+    netblock: {
+        nome: "NetBlock",
+
+        funcao: "Inteligência artificial e página de dúvidas oficial da Netfelix.",
+
+        objetivo: "Explicar informações e assuntos que as pessoas não sabem."
+    }
+
+};
+
+
+let contextoAtual = "";
+
+
+function consultarNetBlock(pergunta) {
+
+    let texto = pergunta.toLowerCase();
+    let respostas = [];
+
+    function procurar(objeto, caminho = "") {
+        for (let chave in objeto) {
+
+            let valor = objeto[chave];
+
+            if (typeof valor === "string") {
+
+                respostas.push({
+                    categoria: caminho,
+                    texto: valor
+                });
+
+            } else if (Array.isArray(valor)) {
+
+                respostas.push({
+                    categoria: caminho,
+                    texto: valor.join(", ")
+                });
+
+            } else if (typeof valor === "object") {
+
+                procurar(valor, chave);
+
+            }
+        }
+    }
+
+    procurar(conhecimento);
+
+    let palavras = texto
+        .replace(/[?!.,]/g, "")
+        .split(" ")
+        .filter(p => p.length > 2);
+
+    let melhores = respostas.map(item => {
+
+        let pontos = 0;
+
+        let conteudo = (
+            item.categoria + " " + item.texto
+        ).toLowerCase();
+
+        palavras.forEach(palavra => {
+            if (conteudo.includes(palavra)) {
+                pontos++;
+            }
+        });
+
+        return {
+            texto: item.texto,
+            pontos: pontos
+        };
+
+    });
+
+    melhores.sort((a, b) => b.pontos - a.pontos);
+
+    if (melhores[0].pontos === 0) {
+        return "Ainda não encontrei essa informação na minha base de conhecimento, guri.";
+    }
+
+    return melhores
+        .filter(item => item.pontos > 0)
+        .slice(0, 3)
+        .map(item => item.texto)
+        .join(" ");
+}
+
+function falar(resposta) {
+    let voz = new SpeechSynthesisUtterance(resposta);
+    voz.lang = "pt-BR";
+    voz.rate = 1;
+
+    speechSynthesis.speak(voz);
+}
+
+function ouvir() {
+    const Reconhecimento =
+        window.SpeechRecognition ||
+        window.webkitSpeechRecognition;
+
+    if (!Reconhecimento) {
+        alert("Seu navegador não suporta reconhecimento de voz.");
+        return;
+    }
+
+    let reconhecimento = new Reconhecimento();
+
+    reconhecimento.lang = "pt-BR";
+    reconhecimento.continuous = false;
+    reconhecimento.interimResults = false;
+
+    reconhecimento.onresult = function(event) {
+        let texto = event.results[0][0].transcript;
+
+        document.getElementById("mensagem").value = texto;
+
+     
