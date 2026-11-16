@@ -1001,4 +1001,1515 @@ function ouvir() {
 
         document.getElementById("mensagem").value = texto;
 
-     
+        enviar();
+    };
+
+    reconhecimento.onerror = function(event) {
+    alert("Erro no microfone: " + event.error);
+    };
+
+    reconhecimento.start();
+}
+
+let intervaloRelogio = null;
+  
+function abrirPainel() {
+    document.getElementById("telaSenha").style.display = "flex";
+
+    atualizarRelogio();
+
+    if (intervaloRelogio !== null) {
+        clearInterval(intervaloRelogio);
+    }
+
+    intervaloRelogio = setInterval(function() {
+        atualizarRelogio();
+    }, 1000);
+
+    atualizarClima();
+
+    setTimeout(iniciarMapaClimatico, 300);
+}
+
+function fecharPainel() {
+    document.getElementById("painelControle").style.display = "none";
+}
+
+  
+function abrirCalendario() {
+    document.getElementById("painelControle").style.display = "none";
+    document.getElementById("telaCalendario").style.display = "block";
+
+    mostrarAba("calendario");
+    atualizarCalendario();
+    montarAgenda();
+}
+
+function fecharCalendario() {
+    document.getElementById("telaCalendario").style.display = "none";
+    document.getElementById("painelControle").style.display = "block";
+}
+
+function mostrarAba(aba) {
+    document.getElementById("abaCalendario").style.display =
+        aba === "calendario" ? "block" : "none";
+
+    document.getElementById("abaAgenda").style.display =
+        aba === "agenda" ? "block" : "none";
+}
+
+// CALENDÁRIO
+
+let mesAtual = new Date().getMonth();
+let anoAtual = new Date().getFullYear();
+
+function atualizarCalendario() {
+    const nomesMeses = [
+        "Janeiro", "Fevereiro", "Março", "Abril",
+        "Maio", "Junho", "Julho", "Agosto",
+        "Setembro", "Outubro", "Novembro", "Dezembro"
+    ];
+
+    const primeiroDia = new Date(anoAtual, mesAtual, 1).getDay();
+    const totalDias = new Date(anoAtual, mesAtual + 1, 0).getDate();
+
+    let html = `
+        <h3>${nomesMeses[mesAtual]} de ${anoAtual}</h3>
+
+        <div style="display:flex; justify-content:space-between; gap:10px;">
+            <button onclick="mudarMes(-1)">⬅ Anterior</button>
+            <button onclick="mudarMes(1)">Próximo ➡</button>
+        </div>
+
+        <div style="
+            display:grid;
+            grid-template-columns:repeat(7, 1fr);
+            gap:5px;
+            margin-top:15px;
+            text-align:center;
+        ">
+    `;
+
+    const diasSemana = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
+
+    diasSemana.forEach(dia => {
+        html += `<strong style="color:#39CFFF;">${dia}</strong>`;
+    });
+
+    for (let i = 0; i < primeiroDia; i++) {
+        html += "<div></div>";
+    }
+
+    for (let dia = 1; dia <= totalDias; dia++) {
+        html += `
+            <div style="
+                background:#102D50;
+                padding:10px 2px;
+                border-radius:8px;
+                border:1px solid #168BFF;
+            ">
+                ${dia}
+            </div>
+        `;
+    }
+
+    html += "</div>";
+
+    document.getElementById("calendarioMensal").innerHTML = html;
+}
+
+function mudarMes(direcao) {
+    mesAtual += direcao;
+
+    if (mesAtual > 11) {
+        mesAtual = 0;
+        anoAtual++;
+    }
+
+    if (mesAtual < 0) {
+        mesAtual = 11;
+        anoAtual--;
+    }
+
+    atualizarCalendario();
+}
+
+// AGENDA SEMANAL
+
+function montarAgenda() {
+    const compromissos = {
+        "Domingo": [
+            "15:30 — Desenhar"
+        ],
+
+        "Segunda-feira": [
+            "13:00 — Ciências",
+            "16:00 — Português",
+            "17:45 — Jogar"
+        ],
+
+        "Terça-feira": [
+            "13:00 — História",
+            "14:50 — Matemática",
+            "16:40 — Educação Física",
+            "17:45 — Inglês",
+            "19:30 — Missa"
+        ],
+
+        "Quarta-feira": [
+            "13:00 — Educação Cristã",
+            "13:50 — Matemática",
+            "17:30 — Futebol",
+            "18:30 — Jogar"
+        ],
+
+        "Quinta-feira": [
+            "07:30 — Produtos NetF",
+            "13:00 — Português",
+            "13:50 — Artes",
+            "14:40 — Música",
+            "16:00 — Inglês",
+            "17:45 — Inglês",
+            "18:45 — Jogar"
+        ],
+
+        "Sexta-feira": [
+            "13:00 — Português",
+            "16:00 — Geografia",
+            "17:30 — Futebol",
+            "18:30 — Música"
+        ],
+
+        "Sábado": [
+            "10:15 — Educação Cristã",
+            "10:00 — NetF",
+            "11:00 — NetF",
+            "11:30 — NetF",
+            "12:00 — NetF",
+            "12:30 — NetF",
+            "13:00 — NetF",
+            "13:30 — NetF",
+            "14:00 — NetF",
+            "14:30 — NetF",
+            "15:00 — NetF",
+            "15:30 — NetF",
+            "16:00 — NetF",
+            "17:00 — NetF",
+            "17:30 — NetF",
+            "18:00 — NetF",
+            "18:30 — NetF",
+            "19:00 — NetF",
+            "19:30 — NetF",
+            "20:00 — NetF",
+            "20:30 — NetF",
+            "21:00 — NetF",
+            "22:00 — NetF",
+            "22:30 — NetF",
+            "23:00 — NetF"
+        ]
+    };
+
+    let html = "";
+
+    for (let dia in compromissos) {
+        html += `
+            <div style="
+                background:#102D50;
+                border:1px solid #168BFF;
+                border-radius:12px;
+                padding:12px;
+                margin:12px 0;
+                text-align:left;
+            ">
+                <h3 style="color:#39CFFF;">📌 ${dia}</h3>
+        `;
+
+        compromissos[dia].forEach(item => {
+            html += `<p style="color:white;">🕒 ${item}</p>`;
+        });
+
+        html += "</div>";
+    }
+
+    document.getElementById("conteudoAgenda").innerHTML = html;
+}
+
+
+function atualizarRelogio() {
+    try {
+        const agora = new Date();
+
+        const hora = agora.toLocaleTimeString("pt-BR", {
+            timeZone: "America/Sao_Paulo",
+            hour12: false
+        });
+
+        const data = agora.toLocaleDateString("pt-BR", {
+            timeZone: "America/Sao_Paulo",
+            weekday: "long",
+            day: "2-digit",
+            month: "long",
+            year: "numeric"
+        });
+
+        document.getElementById("horaAtual").textContent = hora;
+        document.getElementById("dataAtual").textContent = data;
+
+    } catch (erro) {
+        document.getElementById("horaAtual").textContent =
+            "ERRO: " + erro.message;
+    }
+}
+
+
+
+async function atualizarClima() {
+    const endereco = "https://api.open-meteo.com/v1/forecast?latitude=-22.75&longitude=-46.15&current=temperature_2m,weather_code,is_day&timezone=America%2FSao_Paulo";
+
+    try {
+        const resposta = await fetch(endereco);
+        const dados = await resposta.json();
+
+        const atual = dados.current;
+        const codigo = atual.weather_code;
+      const temperatura = atual.temperature_2m;
+
+const estaChovendo =
+    (codigo >= 51 && codigo <= 67) ||
+    (codigo >= 80 && codigo <= 82) ||
+    (codigo >= 95 && codigo <= 99);
+
+const hoje = new Date();
+const dia = hoje.getDay();
+
+const feriado = false;
+
+const probabilidade = calcularProbabilidadeFalta(
+    estaChovendo,
+    temperatura,
+    dia,
+    feriado
+);
+
+document.getElementById("probabilidadeFalta").textContent =
+    "🎓 Probabilidade calculada: " + probabilidade + "%";
+      
+        let icone = "🌤️";
+        let descricao = "Tempo variável";
+
+        if (codigo === 0) {
+            icone = "☀️";
+            descricao = "Céu limpo";
+        } else if (codigo <= 3) {
+            icone = "⛅";
+            descricao = "Parcialmente nublado";
+        } else if (codigo <= 48) {
+            icone = "🌫️";
+            descricao = "Neblina";
+        } else if (codigo <= 67) {
+            icone = "🌧️";
+            descricao = "Chuva";
+        } else if (codigo <= 77) {
+            icone = "❄️";
+            descricao = "Neve";
+        } else if (codigo <= 82) {
+            icone = "🌦️";
+            descricao = "Pancadas de chuva";
+        } else if (codigo <= 99) {
+            icone = "⛈️";
+            descricao = "Tempestade";
+        }
+
+        document.getElementById("climaAtual").textContent =
+            icone + " " + atual.temperature_2m + "°C — " + descricao;
+
+        document.getElementById("diaAtual").textContent =
+            atual.is_day ? "☀️ Dia" : "🌙 Noite";
+
+    } catch (erro) {
+        document.getElementById("climaAtual").textContent =
+            "⚠️ Clima indisponível";
+
+        document.getElementById("diaAtual").textContent =
+            "Verifique a conexão com a internet.";
+    }
+}
+
+
+atualizarClima();
+
+setInterval(atualizarClima, 900000);
+
+  
+function enviar() {
+
+const comando = document
+    .getElementById("mensagem")
+    .value
+    .trim()
+    .toLowerCase();
+
+  if (
+    comando === "abrir o painel de controle" ||
+    comando === "núcleo central"
+) {
+    document.getElementById("painelControle").style.display = "block";
+
+    atualizarRelogio();
+
+    if (intervaloRelogio !== null) {
+        clearInterval(intervaloRelogio);
+    }
+
+    intervaloRelogio = setInterval(function() {
+        atualizarRelogio();
+    }, 1000);
+
+    atualizarClima();
+
+    setTimeout(iniciarMapaClimatico, 300);
+
+    document.getElementById("mensagem").value = "";
+    return;
+  }
+  
+    let texto = document.getElementById("mensagem").value;
+
+    if (texto.trim() === "") return;
+
+    let conversa = document.getElementById("conversa");
+    let pergunta = texto.toLowerCase();
+    let perguntaAnterior = contextoAtual;
+    let resposta = "";
+
+    if (pergunta.includes("olá") || pergunta.includes("oi")) {
+        resposta = "Olá! Como posso ajudar, guri?";
+    
+    }
+    else if (pergunta.includes("quem é você")) {
+        resposta = "Sou a NetBlock, assistente oficial da Netfelix, guri!";
+    }
+    else if (pergunta.includes("tchau")) {
+        resposta = "Até mais! Volte sempre, guri!";
+    }
+    
+else if (
+    pergunta.includes("é legal") ||
+    pergunta.includes("é bom") ||
+    pergunta.includes("é incrível") ||
+    pergunta.includes("você gosta")
+) {
+    resposta = "Essa é uma questão de opinião! Eu não tenho gostos pessoais, mas posso conversar sobre isso com você, guri.";
+}
+
+else if (
+    pergunta.includes("quem é") ||
+    pergunta.includes("o que é") ||
+    pergunta.includes("por que") ||
+    pergunta.includes("qual é")
+) {
+
+    if (
+        pergunta.includes("ele") ||
+        pergunta.includes("ela") ||
+        pergunta.includes("esse nome") ||
+        pergunta.includes("essa empresa")
+    ) {
+        if (perguntaAnterior === "fundador") {
+            resposta = consultarNetBlock("King of Astro");
+        }
+        else if (perguntaAnterior === "empresa") {
+            resposta = consultarNetBlock("Netfelix");
+        }
+        else {
+            resposta = "Pode me lembrar de quem estamos falando, guri?";
+        }
+    }
+    else {
+        resposta = consultarNetBlock(texto);
+    }
+}
+else {
+    resposta = "Ainda não sei responder isso, guri. Essa informação não está na minha base de conhecimento!";
+}
+
+  
+    conversa.innerHTML += "<p>🫪 " + texto + "</p>";
+    conversa.innerHTML += "<p>🎩 " + resposta + "</p>";
+ falar(resposta);
+
+    document.getElementById("mensagem").value = "";
+}
+
+
+function abrirConfiguracoes() {
+    document.getElementById("painelControle").style.display = "none";
+    document.getElementById("telaConfiguracoes").style.display = "block";
+}
+
+function fecharConfiguracoes() {
+    document.getElementById("telaConfiguracoes").style.display = "none";
+    document.getElementById("painelControle").style.display = "block";
+}
+
+// CORES DO PAINEL
+
+function mudarCor(tipo) {
+    let cores = {
+        azul: {
+            fundo: "#020817",
+            modulo: "#081D3B",
+            borda: "#168BFF",
+            texto: "#39CFFF"
+        },
+
+        amarelo: {
+            fundo: "#1A1005",
+            modulo: "#39200A",
+            borda: "#FF9D00",
+            texto: "#FFD34E"
+        },
+
+        tech: {
+            fundo: "#061714",
+            modulo: "#102B2B",
+            borda: "#00E6A8",
+            texto: "#77FFD5"
+        },
+
+        pb: {
+            fundo: "#000000",
+            modulo: "#252525",
+            borda: "#FFFFFF",
+            texto: "#FFFFFF"
+        }
+    };
+
+    let cor = cores[tipo];
+
+    document.getElementById("painelControle").style.background = cor.fundo;
+    document.getElementById("telaCalendario").style.background = cor.fundo;
+    document.getElementById("telaConfiguracoes").style.background = cor.fundo;
+
+    document.querySelectorAll(".modulo").forEach(elemento => {
+        elemento.style.background = cor.modulo;
+        elemento.style.borderColor = cor.borda;
+        elemento.style.color = cor.texto;
+        elemento.style.boxShadow = "0 0 10px " + cor.borda;
+    });
+}
+
+// BRILHO DO PAINEL
+
+function mudarBrilho(valor) {
+    document.querySelectorAll(".modulo").forEach(elemento => {
+        elemento.style.boxShadow =
+            valor + "px " + valor + "px " + (valor * 2) + "px #168BFF";
+    });
+}
+
+// TAMANHO DOS TEXTOS
+
+function mudarTexto(tamanho) {
+    document.querySelectorAll(".modulo").forEach(elemento => {
+        elemento.style.fontSize = tamanho + "px";
+    });
+}
+
+// RESTAURAR PADRÃO
+
+function restaurarPadrao() {
+    mudarCor("azul");
+    mudarBrilho(10);
+    mudarTexto(18);
+
+    document.querySelector(
+        '#telaConfiguracoes input[type="range"]'
+    ).value = 10;
+
+    alert("Configurações restauradas, guri!");
+}
+
+
+// =================================
+// 🎩 CENTRAL DE NOTIFICAÇÕES
+// =================================
+
+function abrirNotificacoes() {
+    document.getElementById("painelControle").style.display = "none";
+    document.getElementById("telaNotificacoes").style.display = "block";
+
+    mostrarAvisos();
+    mostrarLembretes();
+    mostrarAgendaHoje();
+    mostrarFixados();
+    mostrarHistorico();
+}
+
+function fecharNotificacoes() {
+    document.getElementById("telaNotificacoes").style.display = "none";
+    document.getElementById("painelControle").style.display = "block";
+}
+
+// SALVAR DADOS
+
+function carregarDados(chave) {
+    try {
+        return JSON.parse(localStorage.getItem(chave)) || [];
+    } catch (erro) {
+        return [];
+    }
+}
+
+function salvarDados(chave, dados) {
+    localStorage.setItem(chave, JSON.stringify(dados));
+}
+
+let avisos = carregarDados("netblockAvisos");
+let lembretes = carregarDados("netblockLembretes");
+let historico = carregarDados("netblockHistorico");
+ // PROTEGER TEXTOS
+
+function protegerTexto(texto) {
+    return String(texto).replace(/[&<>"']/g, caractere => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;"
+    })[caractere]);
+}
+
+// CRIAR AVISO
+
+function criarAviso() {
+    let campo = document.getElementById("novoAviso");
+    let texto = campo.value.trim();
+
+    if (texto === "") {
+        alert("Escreva um aviso primeiro, guri!");
+        return;
+    }
+
+    avisos.push({
+        texto: texto,
+        data: new Date().toLocaleString("pt-BR"),
+        fixado: false
+    });
+
+    salvarDados("netblockAvisos", avisos);
+
+    campo.value = "";
+
+    mostrarAvisos();
+    mostrarFixados();
+
+    alert("Aviso criado com sucesso!");
+}
+
+// MOSTRAR AVISOS
+
+function mostrarAvisos() {
+    let area = document.getElementById("listaAvisos");
+
+    if (avisos.length === 0) {
+        area.innerHTML = "<p>Nenhum aviso por enquanto.</p>";
+        return;
+    }
+
+    area.innerHTML = avisos.map((aviso, i) => `
+        <div style="background:#102D50; padding:12px; margin:10px 0; border-radius:10px;">
+            <p>${protegerTexto(aviso.texto)}</p>
+            <small>${protegerTexto(aviso.data)}</small>
+            <p>
+                <button onclick="alternarFixado(${i})">
+                    ${aviso.fixado ? "📌 Desafixar" : "📌 Fixar"}
+                </button>
+
+                <button onclick="apagarAviso(${i})">
+                    🗑️ Apagar
+                </button>
+            </p>
+        </div>
+    `).join("");
+}
+
+// APAGAR AVISO E ENVIAR AO HISTÓRICO
+
+function apagarAviso(indice) {
+    let aviso = avisos.splice(indice, 1)[0];
+
+    historico.push({
+        texto: aviso.texto,
+        data: aviso.data,
+        apagado: new Date().toLocaleString("pt-BR")
+    });
+
+    salvarDados("netblockAvisos", avisos);
+    salvarDados("netblockHistorico", historico);
+
+    mostrarAvisos();
+    mostrarFixados();
+    mostrarHistorico();
+}
+
+// FIXAR AVISO
+
+function alternarFixado(indice) {
+    avisos[indice].fixado = !avisos[indice].fixado;
+
+    salvarDados("netblockAvisos", avisos);
+
+    mostrarAvisos();
+    mostrarFixados();
+}
+
+// MOSTRAR FIXADOS
+
+function mostrarFixados() {
+    let area = document.getElementById("avisosFixados");
+
+    let fixados = avisos.filter(aviso => aviso.fixado);
+
+    if (fixados.length === 0) {
+        area.innerHTML = "<p>Nenhum aviso fixado.</p>";
+        return;
+    }
+
+    area.innerHTML = fixados.map(aviso => `
+        <div style="background:#102D50; padding:12px; margin:10px 0; border-radius:10px;">
+            📌 ${protegerTexto(aviso.texto)}
+        </div>
+    `).join("");
+}
+
+// HISTÓRICO
+
+function mostrarHistorico() {
+    let area = document.getElementById("historicoAvisos");
+
+    if (historico.length === 0) {
+        area.innerHTML = "<p>O histórico está vazio.</p>";
+        return;
+    }
+
+    area.innerHTML = historico.map(item => `
+        <div style="background:#102D50; padding:12px; margin:10px 0; border-radius:10px;">
+            <p>${protegerTexto(item.texto)}</p>
+            <small>Criado: ${protegerTexto(item.data)}</small>
+            <br>
+            <small>Apagado: ${protegerTexto(item.apagado)}</small>
+        </div>
+    `).join("");
+}
+
+// CRIAR LEMBRETE
+
+function criarLembrete() {
+    let campoTexto = document.getElementById("textoLembrete");
+    let campoData = document.getElementById("dataLembrete");
+
+    let texto = campoTexto.value.trim();
+    let data = campoData.value;
+
+    if (texto === "" || data === "") {
+        alert("Preencha o nome e o horário do lembrete!");
+        return;
+    }
+
+    if (new Date(data).getTime() <= Date.now()) {
+        alert("Escolha um horário no futuro!");
+        return;
+    }
+
+    lembretes.push({
+        texto: texto,
+        data: data,
+        avisado: false
+    });
+
+    salvarDados("netblockLembretes", lembretes);
+
+    campoTexto.value = "";
+    campoData.value = "";
+
+    mostrarLembretes();
+
+    alert("Lembrete programado!");
+}
+
+// MOSTRAR LEMBRETES
+
+function mostrarLembretes() {
+    let area = document.getElementById("listaLembretes");
+
+    if (lembretes.length === 0) {
+        area.innerHTML = "<p>Nenhum lembrete programado.</p>";
+        return;
+    }
+
+    area.innerHTML = lembretes.map((item, i) => `
+        <div style="background:#102D50; padding:12px; margin:10px 0; border-radius:10px;">
+            <p>⏰ ${protegerTexto(item.texto)}</p>
+            <small>${new Date(item.data).toLocaleString("pt-BR")}</small>
+            <p>
+                ${item.avisado ? "✅ Já avisado" : "⌛ Aguardando"}
+                <button onclick="apagarLembrete(${i})">🗑️ Apagar</button>
+            </p>
+        </div>
+    `).join("");
+}
+
+function apagarLembrete(indice) {
+    lembretes.splice(indice, 1);
+
+    salvarDados("netblockLembretes", lembretes);
+
+    mostrarLembretes();
+}
+
+// VERIFICAR HORÁRIOS DOS LEMBRETES
+
+function verificarLembretes() {
+    let mudou = false;
+
+    lembretes.forEach(item => {
+        if (!item.avisado && Date.now() >= new Date(item.data).getTime()) {
+            alert("🎩 NETBLOCK: " + item.texto);
+
+            item.avisado = true;
+            mudou = true;
+        }
+    });
+
+    if (mudou) {
+        salvarDados("netblockLembretes", lembretes);
+        mostrarLembretes();
+    }
+}
+
+setInterval(verificarLembretes, 15000);
+
+// AGENDA DO DIA
+
+function mostrarAgendaHoje() {
+    let area = document.getElementById("agendaNotificacoes");
+
+    let dias = [
+        "Domingo",
+        "Segunda-feira",
+        "Terça-feira",
+        "Quarta-feira",
+        "Quinta-feira",
+        "Sexta-feira",
+        "Sábado"
+    ];
+
+    let compromissos = [
+        ["15:30 — Desenhar"],
+
+        ["13:00 — Ciências", "16:00 — Português", "17:45 — Jogar"],
+
+        ["13:00 — História", "14:50 — Matemática",
+         "16:40 — Educação Física", "17:45 — Inglês", "19:30 — Missa"],
+
+        ["13:00 — Educação Cristã", "13:50 — Matemática",
+         "17:30 — Futebol", "18:30 — Jogar"],
+
+        ["07:30 — Produtos NetF", "13:00 — Português",
+         "13:50 — Artes", "14:40 — Música", "16:00 — Inglês",
+         "17:45 — Inglês", "18:45 — Jogar"],
+
+        ["13:00 — Português", "16:00 — Geografia",
+         "17:30 — Futebol", "18:30 — Música"],
+
+        ["10:15 — Educação Cristã",
+         "10:00 — NetF", "11:00 — NetF", "11:30 — NetF",
+         "12:00 — NetF", "12:30 — NetF", "13:00 — NetF",
+         "13:30 — NetF", "14:00 — NetF", "14:30 — NetF",
+         "15:00 — NetF", "15:30 — NetF", "16:00 — NetF",
+         "17:00 — NetF", "17:30 — NetF", "18:00 — NetF",
+         "18:30 — NetF", "19:00 — NetF", "19:30 — NetF",
+         "20:00 — NetF", "20:30 — NetF", "21:00 — NetF",
+         "22:00 — NetF", "22:30 — NetF", "23:00 — NetF"]
+    ];
+
+    let hoje = new Date().getDay();
+
+    area.innerHTML = `
+        <h3 style="color:#39CFFF;">
+            ${dias[hoje]}
+        </h3>
+        ${compromissos[hoje].map(item =>
+            `<p>🕒 ${protegerTexto(item)}</p>`
+        ).join("")}
+    `;
+}
+
+
+let mapaClimatico = null;
+let camadaClima = null;
+
+const cidadesClimaticas = [
+    { nome: "Manaus", lat: -3.1, lon: -60.0 },
+    { nome: "Belém", lat: -1.45, lon: -48.5 },
+    { nome: "Porto Velho", lat: -8.76, lon: -63.9 },
+    { nome: "Fortaleza", lat: -3.73, lon: -38.5 },
+    { nome: "Recife", lat: -8.05, lon: -34.9 },
+    { nome: "Salvador", lat: -12.97, lon: -38.5 },
+    { nome: "Brasília", lat: -15.79, lon: -47.88 },
+    { nome: "Cuiabá", lat: -15.6, lon: -56.1 },
+    { nome: "Belo Horizonte", lat: -19.92, lon: -43.9 },
+    { nome: "Rio de Janeiro", lat: -22.9, lon: -43.2 },
+    { nome: "São Paulo", lat: -23.55, lon: -46.63 },
+    { nome: "Curitiba", lat: -25.43, lon: -49.27 },
+    { nome: "Florianópolis", lat: -27.59, lon: -48.55 },
+    { nome: "Porto Alegre", lat: -30.03, lon: -51.23 }
+];
+
+function iniciarMapaClimatico() {
+
+    if (typeof L === "undefined") {
+        document.getElementById("mapaBrasil").textContent =
+            "⚠️ Não foi possível carregar o mapa. Verifique a internet.";
+        return;
+    }
+
+    if (mapaClimatico === null) {
+
+        mapaClimatico = L.map("mapaBrasil").setView([-14.2, -51.9], 4);
+
+        L.tileLayer(
+            "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+            {
+                attribution: "© OpenStreetMap"
+            }
+        ).addTo(mapaClimatico);
+
+        camadaClima = L.layerGroup().addTo(mapaClimatico);
+    }
+
+    setTimeout(() => mapaClimatico.invalidateSize(), 200);
+
+    carregarDadosClimaticos();
+}
+
+function descricaoClima(codigo) {
+
+    if (codigo === 0) return "☀️ Céu limpo";
+    if (codigo <= 3) return "⛅ Parcialmente nublado";
+    if (codigo <= 48) return "🌫️ Neblina";
+    if (codigo <= 67) return "🌧️ Chuva";
+    if (codigo <= 77) return "❄️ Neve";
+    if (codigo <= 82) return "🌦️ Pancadas de chuva";
+    if (codigo <= 99) return "⛈️ Tempestade";
+
+    return "🌤️ Tempo variável";
+}
+
+async function carregarDadosClimaticos() {
+
+    camadaClima.clearLayers();
+
+    for (const cidade of cidadesClimaticas) {
+
+        try {
+
+            const url =
+                "https://api.open-meteo.com/v1/forecast" +
+                "?latitude=" + cidade.lat +
+                "&longitude=" + cidade.lon +
+                "&current=temperature_2m,precipitation,weather_code" +
+                "&timezone=auto";
+
+            const resposta = await fetch(url);
+            const dados = await resposta.json();
+
+            const atual = dados.current;
+
+            const popup = `
+                <strong>${cidade.nome}</strong><br>
+                🌡️ Temperatura: ${atual.temperature_2m}°C<br>
+                🌧️ Precipitação: ${atual.precipitation} mm<br>
+                ${descricaoClima(atual.weather_code)}
+            `;
+
+            L.circleMarker([cidade.lat, cidade.lon], {
+                radius: 9,
+                color: "#50D5FF",
+                fillColor: "#168BFF",
+                fillOpacity: 0.85,
+                weight: 2
+            })
+            .bindPopup(popup)
+            .addTo(camadaClima);
+
+        } catch (erro) {
+
+            console.log(
+                "Erro ao carregar clima de " + cidade.nome,
+                erro
+            );
+
+        }
+    }
+}
+
+setInterval(carregarDadosClimaticos, 900000);
+
+
+function calcularProbabilidadeFalta(chuva, temperatura, dia, feriado) {
+    let probabilidade = 0;
+
+    // Chuva
+    if (chuva) {
+        probabilidade += 15;
+    }
+
+    // Temperatura
+    if (temperatura < 17 || temperatura > 26) {
+        probabilidade += 30;
+    }
+
+    // Dia da semana
+    if (dia === 5) {
+        probabilidade += 3;
+    }
+
+    if (dia === 4) {
+        probabilidade += 1;
+    }
+
+    if (dia === 0 || dia === 6) {
+        probabilidade = 100;
+    }
+
+    // Feriado
+    if (feriado) {
+        probabilidade = 100;
+    }
+
+    return Math.min(probabilidade, 100);
+}
+let graficoFaltas = null;
+
+async function atualizarGraficoFaltas() {
+
+    const url =
+        "https://api.open-meteo.com/v1/forecast" +
+        "?latitude=-22.75&longitude=-46.15" +
+        "&daily=weather_code,temperature_2m_max,temperature_2m_min" +
+        "&timezone=America%2FSao_Paulo";
+
+    try {
+        const resposta = await fetch(url);
+        const dados = await resposta.json();
+
+        const dias = dados.daily.time;
+        const temperaturasMax = dados.daily.temperature_2m_max;
+        const temperaturasMin = dados.daily.temperature_2m_min;
+        const codigos = dados.daily.weather_code;
+
+        const nomesDias = [];
+        const probabilidades = [];
+
+        for (let i = 0; i < dias.length; i++) {
+
+            const data = new Date(dias[i] + "T12:00:00");
+            const dia = data.getDay();
+
+            const temperatura =
+                (temperaturasMax[i] + temperaturasMin[i]) / 2;
+
+            const codigo = codigos[i];
+
+            const chuva =
+                (codigo >= 51 && codigo <= 67) ||
+                (codigo >= 80 && codigo <= 82) ||
+                (codigo >= 95 && codigo <= 99);
+
+            const probabilidade = calcularProbabilidadeFalta(
+                chuva,
+                temperatura,
+                dia,
+                false
+            );
+
+            nomesDias.push(
+                data.toLocaleDateString("pt-BR", {
+                    weekday: "short",
+                    day: "2-digit"
+                })
+            );
+
+            probabilidades.push(probabilidade);
+        }
+
+        const contexto = document
+            .getElementById("graficoFaltas")
+            .getContext("2d");
+
+        if (graficoFaltas) {
+            graficoFaltas.destroy();
+        }
+
+        graficoFaltas = new Chart(contexto, {
+            type: "line",
+
+            data: {
+                labels: nomesDias,
+
+                datasets: [{
+                    label: "Probabilidade (%)",
+                    data: probabilidades,
+                    borderColor: "#39CFFF",
+                    backgroundColor: "rgba(57, 207, 255, 0.15)",
+                    fill: true,
+                    tension: 0.35
+                }]
+            },
+
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        min: 0,
+                        max: 100,
+                        ticks: {
+                            callback: valor => valor + "%"
+                        }
+                    }
+                }
+            }
+        });
+
+    } catch (erro) {
+        console.log("Erro no gráfico de faltas:", erro);
+    }
+}
+
+window.addEventListener("load", atualizarGraficoFaltas);
+
+
+
+let graficoMcDonalds = null;
+let graficoCocaCola = null;
+
+const CHAVE_NETBLOCK = "netblock_contadores_v1";
+
+function pegarDataHoje() {
+    const agora = new Date();
+    return [
+        agora.getFullYear(),
+        String(agora.getMonth() + 1).padStart(2, "0"),
+        String(agora.getDate()).padStart(2, "0")
+    ].join("-");
+}
+
+function diferencaDias(dataInicial, dataFinal) {
+    const [a1, m1, d1] = dataInicial.split("-").map(Number);
+    const [a2, m2, d2] = dataFinal.split("-").map(Number);
+
+    const inicio = Date.UTC(a1, m1 - 1, d1);
+    const fim = Date.UTC(a2, m2 - 1, d2);
+
+    return Math.floor((fim - inicio) / 86400000);
+}
+
+function carregarContadores() {
+    const hoje = pegarDataHoje();
+    let dados = JSON.parse(
+        localStorage.getItem(CHAVE_NETBLOCK)
+    );
+
+    if (!dados) {
+        dados = {
+            ultimaData: hoje,
+            mcd: 2.16,
+            coca: 783,
+            historico: [{
+                data: hoje,
+                mcd: 2.16,
+                coca: 783
+            }]
+        };
+    } else {
+        const dias = diferencaDias(
+            dados.ultimaData,
+            hoje
+        );
+
+        for (let i = 0; i < dias; i++) {
+            dados.mcd += 2.16;
+            dados.coca += 783;
+
+            const data = new Date(
+                Date.UTC(
+                    ...dados.ultimaData.split("-").map(Number).map(
+                        (v, index) => index === 1 ? v - 1 : v
+                    )
+                ) + 86400000
+            ).toISOString().slice(0, 10);
+
+            dados.ultimaData = data;
+
+            dados.historico.push({
+                data: data,
+                mcd: dados.mcd,
+                coca: dados.coca
+            });
+        }
+    }
+
+    dados.historico = dados.historico.slice(-30);
+
+    localStorage.setItem(
+        CHAVE_NETBLOCK,
+        JSON.stringify(dados)
+    );
+
+    return dados;
+}
+
+function atualizarGraficosEmpresas() {
+    const dados = carregarContadores();
+
+    const dias = dados.historico.map(item =>
+        new Date(item.data + "T12:00:00")
+            .toLocaleDateString("pt-BR")
+    );
+
+    const valoresMcd = dados.historico.map(item =>
+        Number(item.mcd.toFixed(2))
+    );
+
+    const valoresCoca = dados.historico.map(item =>
+        item.coca
+    );
+
+    if (!graficoMcDonalds) {
+        graficoMcDonalds = new Chart(
+            document.getElementById("graficoMcDonalds"),
+            {
+                type: "line",
+                data: {
+                    labels: dias,
+                    datasets: [{
+                        label: "McDonald's (R$ bilhões)",
+                        data: valoresMcd,
+                        borderColor: "#FFC72C",
+                        backgroundColor: "#FFC72C",
+                        tension: 0.3
+                    }]
+                },
+                options: {
+                    responsive: true
+                }
+            }
+        );
+    } else {
+        graficoMcDonalds.data.labels = dias;
+        graficoMcDonalds.data.datasets[0].data = valoresMcd;
+        graficoMcDonalds.update();
+    }
+
+    if (!graficoCocaCola) {
+        graficoCocaCola = new Chart(
+            document.getElementById("graficoCocaCola"),
+            {
+                type: "line",
+                data: {
+                    labels: dias,
+                    datasets: [{
+                        label: "Coca-Cola (R$ milhões)",
+                        data: valoresCoca,
+                        borderColor: "#E5252A",
+                        backgroundColor: "#E5252A",
+                        tension: 0.3
+                    }]
+                },
+                options: {
+                    responsive: true
+                }
+            }
+        );
+    } else {
+        graficoCocaCola.data.labels = dias;
+        graficoCocaCola.data.datasets[0].data = valoresCoca;
+        graficoCocaCola.update();
+    }
+}
+
+window.addEventListener("load", () => {
+    atualizarGraficosEmpresas();
+
+    setInterval(atualizarGraficosEmpresas, 60000);
+});
+
+  
+let graficoClimatico = null;
+
+async function atualizarGraficoClima() {
+    const url =
+        "https://api.open-meteo.com/v1/forecast" +
+        "?latitude=-22.75&longitude=-46.15" +
+        "&hourly=weather_code,is_day" +
+        "&timezone=America%2FSao_Paulo";
+
+    try {
+        const resposta = await fetch(url);
+        const dados = await resposta.json();
+
+        const hoje = new Date().toLocaleDateString("en-CA");
+
+        const horas = dados.hourly.time;
+        const codigos = dados.hourly.weather_code;
+        const dias = dados.hourly.is_day;
+
+        const contagem = {
+            chuva: 0,
+            sol: 0,
+            nublado: 0,
+            meioNublado: 0,
+            arcoIris: 0
+        };
+
+        for (let i = 0; i < horas.length; i++) {
+            if (!horas[i].startsWith(hoje)) continue;
+
+            const codigo = codigos[i];
+            const dia = dias[i] === 1;
+
+            const chuva =
+                (codigo >= 51 && codigo <= 67) ||
+                (codigo >= 80 && codigo <= 82) ||
+                (codigo >= 95 && codigo <= 99);
+
+            if (chuva && dia) {
+                contagem.arcoIris++;
+            } else if (chuva) {
+                contagem.chuva++;
+            } else if (codigo === 0) {
+                contagem.sol++;
+            } else if (codigo === 1 || codigo === 2) {
+                contagem.meioNublado++;
+            } else {
+                contagem.nublado++;
+            }
+        }
+
+        const total = Object.values(contagem)
+            .reduce((soma, valor) => soma + valor, 0);
+
+        if (total === 0) return;
+
+        const porcentagens = [
+            contagem.chuva,
+            contagem.sol,
+            contagem.nublado,
+            contagem.meioNublado,
+            contagem.arcoIris
+        ].map(valor => Math.round(valor / total * 100));
+
+        // Ajusta arredondamentos para fechar em 100%
+        const diferenca = 100 -
+            porcentagens.reduce((soma, valor) => soma + valor, 0);
+
+        porcentagens[0] += diferenca;
+
+        const area = document.getElementById("graficoClima");
+
+        area.innerHTML = `
+    <div id="layoutClima">
+        <canvas id="pizzaClimatica"></canvas>
+        <div id="legendaClima"></div>
+    </div>
+`;
+
+        const contexto = document
+            .getElementById("pizzaClimatica")
+            .getContext("2d");
+
+        if (graficoClimatico) {
+            graficoClimatico.destroy();
+        }
+
+        graficoClimatico = new Chart(contexto, {
+            type: "pie",
+            data: {
+                labels: [
+                    "Chuva",
+                    "Sol",
+                    "Nublado",
+                    "Sol/Nuvem",
+                    "Sol/Chuva"
+                ],
+                datasets: [{
+                    data: porcentagens,
+                    backgroundColor: [
+                        "#168BFF",
+                        "#FF3030",
+                        "#FFFFFF",
+                        "#808080",
+                        "#9B30FF"
+                    ],
+                    borderColor: "#06142A",
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                      position: "right",
+                        labels: {
+                            color: "#FFFFFF"
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(item) {
+                                return item.label + ": " +
+                                    item.raw + "%";
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+    } catch (erro) {
+        console.log("Erro no gráfico climático:", erro);
+    }
+}
+
+window.addEventListener("load", atualizarGraficoClima);
+
+
+
+const temasForYou = [
+    { nome: "One Piece", emoji: "🏴‍☠️" },
+    { nome: "Minecraft", emoji: "⛏️" },
+    { nome: "Fortnite", emoji: "🎮" },
+    { nome: "Michael Jackson", emoji: "🎤" },
+    { nome: "PlayStation 5", emoji: "🎮" },
+    { nome: "PlayStation 2", emoji: "🕹️" },
+    { nome: "Nintendo Switch 2", emoji: "🎮" },
+    { nome: "receitas culinária", emoji: "🍳" }
+];
+
+async function pesquisarTema(tema) {
+    const pesquisa = tema.nome + " when:7d";
+
+    const rss = "https://news.google.com/rss/search?q="
+        + encodeURIComponent(pesquisa)
+        + "&hl=pt-BR&gl=BR&ceid=BR:pt-419";
+
+    const endereco = "https://api.rss2json.com/v1/api.json?rss_url="
+        + encodeURIComponent(rss);
+
+    const resposta = await fetch(endereco);
+    const dados = await resposta.json();
+
+    if (dados.status !== "ok" || !dados.items?.length) {
+        return null;
+    }
+
+    const noticias = dados.items
+        .filter(n => n.title && n.link)
+        .sort((a, b) =>
+            new Date(b.pubDate) - new Date(a.pubDate)
+        );
+
+    if (!noticias.length) return null;
+
+    return noticias[0];
+}
+
+async function atualizarForYou() {
+    const lista = document.getElementById("listaForYou");
+    const status = document.getElementById("statusForYou");
+
+    lista.innerHTML = "";
+    status.textContent = "🎩 NetBlock pesquisando todos os temas...";
+
+    let encontradas = 0;
+
+    const resultados = await Promise.allSettled(
+        temasForYou.map(async tema => ({
+            tema,
+            noticia: await pesquisarTema(tema)
+        }))
+    );
+
+    const feed = [];
+
+    resultados.forEach(resultado => {
+        if (
+            resultado.status === "fulfilled" &&
+            resultado.value.noticia
+        ) {
+            feed.push(resultado.value);
+        }
+    });
+
+    feed.sort(() => Math.random() - 0.5);
+
+    feed.forEach(({ tema, noticia }) => {
+        const cartao = document.createElement("div");
+        cartao.className = "cartaoNoticia";
+
+        const titulo = document.createElement("h4");
+        titulo.textContent = tema.emoji + " " + noticia.title;
+
+        const fonte = document.createElement("p");
+        fonte.textContent = "Fonte: " +
+            (noticia.author || "Google Notícias");
+
+        const data = document.createElement("p");
+        data.textContent = "Publicado: " + noticia.pubDate;
+
+        const link = document.createElement("a");
+        link.textContent = "🔗 Ler notícia completa";
+        link.href = noticia.link;
+        link.target = "_blank";
+        link.rel = "noopener noreferrer";
+
+        cartao.append(titulo, fonte, data, link);
+        lista.appendChild(cartao);
+
+        encontradas++;
+    });
+
+    status.textContent = encontradas +
+        " notícias encontradas! 🎩";
+}
+
+
+function verificarSenha() {
+    const senha = document.getElementById("senhaPainel").value;
+    const erro = document.getElementById("erroSenha");
+
+    if (senha === "NÚCLEO CENTRAL") {
+        document.getElementById("telaSenha").style.display = "none";
+        document.getElementById("painelControle").style.display = "block";
+
+        document.getElementById("senhaPainel").value = "";
+        erro.textContent = "";
+    } else {
+        erro.textContent = "❌ Senha incorreta!";
+    }
+}
+
+function abrirUniversoNetfelix() {
+    document.getElementById("universoNetfelix").style.display = "block";
+}
+
+function fecharUniversoNetfelix() {
+    document.getElementById("universoNetfelix").style.display = "none";
+}
+  
+</script>
+  
+</body>
+</html>
